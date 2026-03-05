@@ -67,6 +67,8 @@
         /// Gets or sets the <see cref="IRequestCache"/> implementation.
         /// </summary>
         public IRequestCache Cache { get; set; }
+        readonly TimeSpan cooldown = TimeSpan.FromSeconds(3);
+        DateTime lastRequest;
 
         private readonly HttpClient client;
 
@@ -132,6 +134,16 @@
         public void Dispose()
         {
             client.Dispose();
+        }
+
+        async Task Delay(CancellationToken cancellationToken)
+        {
+            TimeSpan timeSinceLastRequest = DateTime.UtcNow - lastRequest;
+            if (timeSinceLastRequest < cooldown)
+            {
+                await Task.Delay(cooldown - timeSinceLastRequest, cancellationToken);
+            }
+            lastRequest = DateTime.UtcNow;
         }
 
         [DataContract]
