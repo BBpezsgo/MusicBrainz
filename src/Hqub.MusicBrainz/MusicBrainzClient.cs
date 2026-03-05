@@ -150,8 +150,13 @@
 
                 var serializer = new DataContractJsonSerializer(typeof(T));
 
-                if (await cache.TryGetCachedItem(url, out Stream stream).ConfigureAwait(false))
+                if (await cache.TryGetCachedItem(url, out Stream stream, out HttpStatusCode status).ConfigureAwait(false))
                 {
+                    if (!((int)status >= 200 && (int)status <= 299))
+                    {
+                        throw CreateWebserviceException(status, url, stream);
+                    }
+
                     var result = (T)serializer.ReadObject(stream);
 
                     // TODO: if de-serialization of the cache file fails, we shouldn't throw 
@@ -162,16 +167,18 @@
                     return result;
                 }
 
+                await Delay(ct).ConfigureAwait(false);
+
                 using var response = await client.GetAsync(url, ct).ConfigureAwait(false);
 
                 using var content = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+                await cache.Add(url, content, response.StatusCode).ConfigureAwait(false);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     throw CreateWebserviceException(response.StatusCode, url, content);
                 }
-
-                await cache.Add(url, content).ConfigureAwait(false);
 
                 return (T)serializer.ReadObject(content);
             }

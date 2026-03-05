@@ -2,6 +2,7 @@
 namespace Hqub.MusicBrainz.Cache
 {
     using System.IO;
+    using System.Net;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -13,8 +14,9 @@ namespace Hqub.MusicBrainz.Cache
         /// Add a request and its response to the cache.
         /// </summary>
         /// <param name="request">The request url used to identify the cache item.</param>
-        /// <param name="response">The MusicbBrainz web service response stream.</param>
-        Task Add(string request, Stream response);
+        /// <param name="response">The response stream.</param>
+        /// <param name="status">The response status code.</param>
+        Task Add(string request, Stream response, HttpStatusCode status);
 
         /// <summary>
         /// Test whether the cache contains an entry matching the given request url.
@@ -28,7 +30,8 @@ namespace Hqub.MusicBrainz.Cache
         /// </summary>
         /// <param name="request">The request url used to identify the cache item.</param>
         /// <param name="stream">The response stream read form cache.</param>
+        /// <param name="status">The response status code read form cache.</param>
         /// <returns>True, if a cache entry matching the request was found.</returns>
-        Task<bool> TryGetCachedItem(string request, out Stream stream);
+        Task<bool> TryGetCachedItem(string request, out Stream stream, out HttpStatusCode status);
     }
 }

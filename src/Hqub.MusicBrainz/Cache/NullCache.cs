@@ -2,6 +2,7 @@
 namespace Hqub.MusicBrainz.Cache
 {
     using System.IO;
+    using System.Net;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -19,7 +20,7 @@ namespace Hqub.MusicBrainz.Cache
         }
 
         /// <inheritdoc />
-        public Task Add(string request, Stream response)
+        public Task Add(string request, Stream response, HttpStatusCode status)
         {
 #if NET5_0_OR_GREATER
             return Task.CompletedTask;
@@ -35,9 +36,10 @@ namespace Hqub.MusicBrainz.Cache
         }
 
         /// <inheritdoc />
-        public Task<bool> TryGetCachedItem(string request, out Stream stream)
+        public Task<bool> TryGetCachedItem(string request, out Stream stream, out HttpStatusCode status)
         {
             stream = null;
+            status = default;
 
             return Task.FromResult(false);
         }
