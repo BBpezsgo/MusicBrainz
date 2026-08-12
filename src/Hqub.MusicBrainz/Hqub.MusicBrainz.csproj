@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
+    <TargetFramework>net11.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -50,6 +50,10 @@
   <ItemGroup>
     <None Include="..\..\assets\brain-128.png" Pack="true" PackagePath="\" />
     <None Include="..\..\assets\readme.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../HttpCache/HttpCache.csproj" />
   </ItemGroup>
   
   <ItemGroup>

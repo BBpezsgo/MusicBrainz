@@ -1,6 +1,5 @@
 ﻿namespace Hqub.MusicBrainz
 {
-    using Hqub.MusicBrainz.Cache;
     using Hqub.MusicBrainz.Entities;
     using Hqub.MusicBrainz.Services;
     using System;
@@ -11,6 +10,7 @@
     using System.Runtime.Serialization.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using HttpCache;
 
     /// <summary>
     /// MusicBrainz client.
@@ -68,7 +68,7 @@
         /// </summary>
         public IRequestCache Cache { get; set; }
         readonly TimeSpan cooldown = TimeSpan.FromSeconds(3);
-        DateTime lastRequest;
+        DateTimeOffset lastRequest;
 
         private readonly HttpClient client;
 
@@ -138,12 +138,12 @@
 
         async Task Delay(CancellationToken cancellationToken)
         {
-            TimeSpan timeSinceLastRequest = DateTime.UtcNow - lastRequest;
+            TimeSpan timeSinceLastRequest = DateTimeOffset.UtcNow - lastRequest;
             if (timeSinceLastRequest < cooldown)
             {
                 await Task.Delay(cooldown - timeSinceLastRequest, cancellationToken);
             }
-            lastRequest = DateTime.UtcNow;
+            lastRequest = DateTimeOffset.UtcNow;
         }
 
         [DataContract]
@@ -162,7 +162,7 @@
 
                 var serializer = new DataContractJsonSerializer(typeof(T));
 
-                if (await cache.TryGetCachedItem(url, out Stream stream, out HttpStatusCode status).ConfigureAwait(false))
+                if (cache.TryGetCachedItem(url, out Stream stream, out HttpStatusCode status))
                 {
                     if (!((int)status >= 200 && (int)status <= 299))
                     {
@@ -183,9 +183,9 @@
 
                 using var response = await client.GetAsync(url, ct).ConfigureAwait(false);
 
-                using var content = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var content = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
-                await cache.Add(url, content, response.StatusCode).ConfigureAwait(false);
+                cache.Add(url, content, response.StatusCode);
 
                 if (!response.IsSuccessStatusCode)
                 {
